@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-// Read the full article https://dev.to/mateuszjarzyna/build-your-own-http-server-in-java-in-less-than-one-hour-only-get-method-2k02
 public class Main {
 
 	public static void main( String[] args ) throws Exception {
@@ -50,11 +49,38 @@ public class Main {
                 client.toString(), method, path, version, host, headers.toString());
         System.out.println(accessLog);
         
+        Path filePath = getFilePath(path);
+        System.out.println("File exist" + filePath.toString());
+        if (Files.exists(filePath)) {
+            // file exist
+            String contentType = guessContentType(filePath);
+            sendResponse(client, "200 OK", contentType, Files.readAllBytes(filePath));
+        } else {
+            // 404
+            byte[] notFoundContent = "<h1>Not found :(</h1>".getBytes();
+            sendResponse(client, "404 Not Found", "text/html", notFoundContent);
+        }
+        
+    }
+	
+	private static String guessContentType(Path filePath) throws IOException {
+        return Files.probeContentType(filePath);
+    }
+
+    private static Path getFilePath(String path) {
+        if ("/".equals(path)) {
+            path = "/index.html";
+        }
+
+        return Paths.get("/media/erick/Nuevo vol/IndieKioyin/Proyectos/indie-server/src/com/kyojin/indie/main", path);
+    }
+    
+    private static void sendResponse(Socket client, String status, String contentType, byte[] content) throws IOException {
         OutputStream clientOutput = client.getOutputStream();
-        clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
-        clientOutput.write(("ContentType: text/html\r\n").getBytes());
+        clientOutput.write(("HTTP/1.1 \r\n" + status).getBytes());
+        clientOutput.write(("ContentType: " + contentType + "\r\n").getBytes());
         clientOutput.write("\r\n".getBytes());
-        clientOutput.write("<b>It works!</b>".getBytes());
+        clientOutput.write(content);
         clientOutput.write("\r\n\r\n".getBytes());
         clientOutput.flush();
         client.close();

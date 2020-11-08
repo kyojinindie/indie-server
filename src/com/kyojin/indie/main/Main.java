@@ -9,6 +9,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kyojin.indie.logo.Logo;
+
 public class Main {
 
 	public static void main( String[] args ) throws Exception {
@@ -22,6 +24,8 @@ public class Main {
     }
 	
 	private static void handleClient(Socket client) throws IOException {
+		Logo logo = new Logo();
+		logo.printLogo();
         System.out.println("Debug: got new client " + client.toString());
         BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
@@ -50,7 +54,6 @@ public class Main {
         System.out.println(accessLog);
         
         Path filePath = getFilePath(path);
-        System.out.println("File exist" + filePath.toString());
         if (Files.exists(filePath)) {
             // file exist
             String contentType = guessContentType(filePath);
